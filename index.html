@@ -384,6 +384,26 @@
             background: #f8d7da;
             color: #721c24;
         }
+
+        .method-input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .method-input {
+            flex: 1;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #1976d2;
+        }
     </style>
 </head>
 <body>
@@ -447,21 +467,46 @@
             <!-- Raw JSON Mode -->
             <div class="section raw-json-editor" id="rawMode">
                 <div class="section-title">
-                    📝 Raw JSON Request Body
+                    📝 Raw JSON Mode
                 </div>
+                
+                <div class="info-box">
+                    💡 <strong>Tip:</strong> Enter the method name and paste the params content below. Just paste the comma-separated values (no need for [ ] brackets). The app will automatically wrap them in an array.
+                </div>
+
+                <div class="method-input-row">
+                    <div class="method-input">
+                        <label class="param-label">Method Name *</label>
+                        <input 
+                            type="text" 
+                            id="rawMethodInput" 
+                            placeholder="e.g., tenderly_simulateTransaction, eth_call, debug_traceTransaction"
+                            style="width: 100%;"
+                        >
+                    </div>
+                </div>
+
+                <label class="param-label">Parameters *</label>
                 <textarea 
                     class="json-textarea" 
-                    id="rawJsonInput" 
-                    placeholder='Paste your complete JSON-RPC request body here:
+                    id="rawParamsInput" 
+                    placeholder='Paste your params here (comma-separated, no array brackets needed):
+
 {
-  "jsonrpc": "2.0",
-  "id": 0,
-  "method": "eth_blockNumber",
-  "params": []
+  "from": "0xe2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2",
+  "to": "0x6b175474e89094c44da98b954eedeac495271d0f",
+  "input": "0x40c10f19000...",
+  "maxFeePerGas": "0x6d974775d"
+},
+"latest",
+{
+  "0xe2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2": {
+    "balance": "0x3635c9adc5dea00000"
+  }
 }'
-                    oninput="validateJson()"
+                    oninput="validateParams()"
                 ></textarea>
-                <div id="jsonValidation" class="json-validation" style="display: none;"></div>
+                <div id="paramsValidation" class="json-validation" style="display: none;"></div>
             </div>
 
             <!-- Send Button -->
@@ -493,7 +538,7 @@
             if (isRawMode) {
                 formMode.classList.add('hidden');
                 rawMode.classList.add('active');
-                modeDescription.innerHTML = '<strong>Raw JSON Mode</strong> - Paste complete request body';
+                modeDescription.innerHTML = '<strong>Raw JSON Mode</strong> - Paste method name and params array';
             } else {
                 formMode.classList.remove('hidden');
                 rawMode.classList.remove('active');
@@ -501,15 +546,18 @@
             }
         }
 
-        function validateJson() {
-            const textarea = document.getElementById('rawJsonInput');
-            const validation = document.getElementById('jsonValidation');
+        function validateParams() {
+            const textarea = document.getElementById('rawParamsInput');
+            const validation = document.getElementById('paramsValidation');
             
             try {
-                const json = JSON.parse(textarea.value);
+                // Try to parse as array first (wrap in brackets)
+                const wrappedValue = `[${textarea.value}]`;
+                const params = JSON.parse(wrappedValue);
+                
                 validation.style.display = 'block';
                 validation.className = 'json-validation valid';
-                validation.textContent = '✓ Valid JSON';
+                validation.textContent = `✓ Valid params (${params.length} parameter${params.length !== 1 ? 's' : ''})`;
                 return true;
             } catch (e) {
                 if (textarea.value.trim()) {
@@ -671,34 +719,25 @@
             return params;
         }
 
-        function getRawJsonRequest() {
-            const textarea = document.getElementById('rawJsonInput');
-            try {
-                const json = JSON.parse(textarea.value);
-                
-                // Validate basic JSON-RPC structure
-                if (!json.method) {
-                    throw new Error('Missing "method" field in JSON-RPC request');
-                }
-                if (!json.params) {
-                    json.params = [];
-                }
-                if (!json.jsonrpc) {
-                    json.jsonrpc = '2.0';
-                }
-                if (json.id === undefined) {
-                    json.id = 1;
-                }
-                
-                return {
-                    method: json.method,
-                    params: json.params,
-                    jsonrpc: json.jsonrpc,
-                    id: json.id
-                };
-            } catch (e) {
-                throw new Error('Invalid JSON: ' + e.message);
+        function getRawModeData() {
+            const methodInput = document.getElementById('rawMethodInput');
+            const paramsTextarea = document.getElementById('rawParamsInput');
+            
+            const method = methodInput.value.trim();
+            if (!method) {
+                throw new Error('Method name is required');
             }
+
+            let params;
+            try {
+                // Wrap the input in array brackets and parse
+                const wrappedValue = `[${paramsTextarea.value}]`;
+                params = JSON.parse(wrappedValue);
+            } catch (e) {
+                throw new Error('Invalid params JSON: ' + e.message);
+            }
+
+            return { method, params };
         }
 
         async function sendRequests() {
@@ -708,15 +747,13 @@
                 return;
             }
 
-            let method, params, jsonrpc = '2.0', id = 1;
+            let method, params;
 
             try {
                 if (isRawMode) {
-                    const rawRequest = getRawJsonRequest();
-                    method = rawRequest.method;
-                    params = rawRequest.params;
-                    jsonrpc = rawRequest.jsonrpc;
-                    id = rawRequest.id;
+                    const rawData = getRawModeData();
+                    method = rawData.method;
+                    params = rawData.params;
                 } else {
                     if (!currentMethod) {
                         alert('Please select a method first!');
@@ -734,13 +771,13 @@
             resultsContainer.innerHTML = '<div class="loading"><div class="spinner"></div><p>Sending requests...</p></div>';
 
             const results = await Promise.all(
-                endpoints.map(endpoint => sendRequest(endpoint, method, params, jsonrpc, id))
+                endpoints.map(endpoint => sendRequest(endpoint, method, params))
             );
 
             displayResults(results);
         }
 
-        async function sendRequest(endpoint, method, params, jsonrpc = '2.0', id = 1) {
+        async function sendRequest(endpoint, method, params) {
             const startTime = Date.now();
             
             try {
@@ -750,10 +787,10 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        jsonrpc: jsonrpc,
+                        jsonrpc: '2.0',
                         method: method,
                         params: params,
-                        id: id
+                        id: 1
                     })
                 });
 
