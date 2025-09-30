@@ -40,6 +40,19 @@
       "description": "Returns transaction details for a given hash"
     },
     {
+      "name": "Get Transaction by Hash",
+      "method": "eth_getTransactionByHash",
+      "params": [
+        {
+          "name": "txHash",
+          "type": "string",
+          "placeholder": "0x...",
+          "required": true
+        }
+      ],
+      "description": "Returns transaction details for a given hash"
+    },
+    {
       "name": "Get Transaction Receipt",
       "method": "eth_getTransactionReceipt",
       "params": [
