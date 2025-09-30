@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web3 RPC Sender</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rpc-endpoints {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .endpoint-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input[type="text"], select, textarea {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .btn-add {
+            background: #27ae60;
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .method-selector {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .params-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .param-input {
+            margin-bottom: 15px;
+        }
+
+        .param-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .send-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+        }
+
+        .results-container {
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .result-endpoint {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .result-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .result-time {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .result-data {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .method-description {
+            font-size: 13px;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+
+        .copy-btn {
+            background: #3498db;
+            color: white;
+            padding: 6px 12px;
+            font-size: 11px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Web3 RPC Sender</h1>
+            <p>Send requests to multiple RPC endpoints simultaneously</p>
+        </div>
+
+        <div class="content">
+            <!-- RPC Endpoints Section -->
+            <div class="section">
+                <div class="section-title">
+                    🌐 RPC Endpoints
+                </div>
+                <div class="rpc-endpoints" id="rpcEndpoints">
+                    <div class="endpoint-row">
+                        <input type="text" placeholder="https://eth-mainnet.g.alchemy.com/v2/YOUR-API-KEY" class="rpc-input">
+                        <button class="btn btn-danger btn-small" onclick="removeEndpoint(this)">Remove</button>
+                    </div>
+                </div>
+                <button class="btn btn-add" onclick="addEndpoint()">+ Add Endpoint</button>
+            </div>
+
+            <!-- Method Selection Section -->
+            <div class="section">
+                <div class="section-title">
+                    📋 Select Method
+                </div>
+                <div class="method-selector">
+                    <select id="methodSelect" onchange="onMethodChange()">
+                        <option value="">Select a method...</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="loadMethods()">Reload Methods</button>
+                </div>
+                <div id="methodDescription" class="method-description"></div>
+            </div>
+
+            <!-- Parameters Section -->
+            <div class="section">
+                <div class="section-title">
+                    ⚙️ Parameters
+                </div>
+                <div class="params-container" id="paramsContainer">
+                    <p style="color: #999;">Select a method to configure parameters</p>
+                </div>
+            </div>
+
+            <!-- Send Button -->
+            <button class="btn btn-primary send-btn" onclick="sendRequests()">
+                Send Requests to All Endpoints
+            </button>
+
+            <!-- Results Section -->
+            <div class="results-container" id="resultsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let methods = [];
+        let currentMethod = null;
+
+        // Load methods on startup
+        window.addEventListener('DOMContentLoaded', () => {
+            loadMethods();
+        });
+
+        async function loadMethods() {
+            try {
+                const response = await fetch('methods.json');
+                const data = await response.json();
+                methods = data.methods;
+                
+                const select = document.getElementById('methodSelect');
+                select.innerHTML = '<option value="">Select a method...</option>';
+                
+                methods.forEach((method, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = `${method.name} (${method.method})`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading methods:', error);
+                alert('Error loading methods. Make sure methods.json is available.');
+            }
+        }
+
+        function onMethodChange() {
+            const select = document.getElementById('methodSelect');
+            const methodIndex = select.value;
+            
+            if (methodIndex === '') {
+                currentMethod = null;
+                document.getElementById('paramsContainer').innerHTML = '<p style="color: #999;">Select a method to configure parameters</p>';
+                document.getElementById('methodDescription').textContent = '';
+                return;
+            }
+
+            currentMethod = methods[methodIndex];
+            document.getElementById('methodDescription').textContent = currentMethod.description;
+            
+            renderParams();
+        }
+
+        function renderParams() {
+            const container = document.getElementById('paramsContainer');
+            
+            if (!currentMethod.params || currentMethod.params.length === 0) {
+                container.innerHTML = '<p style="color: #999;">This method requires no parameters</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            
+            currentMethod.params.forEach((param, index) => {
+                const div = document.createElement('div');
+                div.className = 'param-input';
+                
+                const label = document.createElement('label');
+                label.className = 'param-label';
+                label.textContent = `${param.name}${param.required ? ' *' : ''} (${param.type})`;
+                
+                let input;
+                if (param.type === 'object') {
+                    input = document.createElement('textarea');
+                    input.rows = 3;
+                    input.placeholder = param.placeholder || '{}';
+                } else if (param.type === 'boolean') {
+                    input = document.createElement('select');
+                    input.innerHTML = '<option value="true">true</option><option value="false">false</option>';
+                } else {
+                    input = document.createElement('input');
+                    input.type = 'text';
+                    input.placeholder = param.placeholder || '';
+                }
+                
+                input.id = `param-${index}`;
+                input.dataset.paramIndex = index;
+                
+                if (param.default !== undefined) {
+                    input.value = param.type === 'object' ? JSON.stringify(param.default) : param.default;
+                }
+                
+                div.appendChild(label);
+                div.appendChild(input);
+                container.appendChild(div);
+            });
+        }
+
+        function addEndpoint() {
+            const container = document.getElementById('rpcEndpoints');
+            const row = document.createElement('div');
+            row.className = 'endpoint-row';
+            row.innerHTML = `
+                <input type="text" placeholder="https://your-rpc-endpoint.com" class="rpc-input">
+                <button class="btn btn-danger btn-small" onclick="removeEndpoint(this)">Remove</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeEndpoint(btn) {
+            const endpoints = document.querySelectorAll('.endpoint-row');
+            if (endpoints.length > 1) {
+                btn.parentElement.remove();
+            } else {
+                alert('You must have at least one endpoint!');
+            }
+        }
+
+        function getEndpoints() {
+            const inputs = document.querySelectorAll('.rpc-input');
+            const endpoints = [];
+            inputs.forEach(input => {
+                if (input.value.trim()) {
+                    endpoints.push(input.value.trim());
+                }
+            });
+            return endpoints;
+        }
+
+        function getParams() {
+            if (!currentMethod || !currentMethod.params || currentMethod.params.length === 0) {
+                return [];
+            }
+
+            const params = [];
+            currentMethod.params.forEach((param, index) => {
+                const input = document.getElementById(`param-${index}`);
+                let value = input.value;
+
+                if (param.type === 'object') {
+                    try {
+                        value = JSON.parse(value);
+                    } catch (e) {
+                        throw new Error(`Invalid JSON for parameter ${param.name}`);
+                    }
+                } else if (param.type === 'boolean') {
+                    value = value === 'true';
+                } else if (param.type === 'number') {
+                    value = parseInt(value);
+                }
+
+                if (param.required && !value) {
+                    throw new Error(`Parameter ${param.name} is required`);
+                }
+
+                if (value !== '' && value !== null && value !== undefined) {
+                    params.push(value);
+                }
+            });
+
+            return params;
+        }
+
+        async function sendRequests() {
+            if (!currentMethod) {
+                alert('Please select a method first!');
+                return;
+            }
+
+            const endpoints = getEndpoints();
+            if (endpoints.length === 0) {
+                alert('Please add at least one RPC endpoint!');
+                return;
+            }
+
+            let params;
+            try {
+                params = getParams();
+            } catch (error) {
+                alert(error.message);
+                return;
+            }
+
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = '<div class="loading"><div class="spinner"></div><p>Sending requests...</p></div>';
+
+            const results = await Promise.all(
+                endpoints.map(endpoint => sendRequest(endpoint, currentMethod.method, params))
+            );
+
+            displayResults(results);
+        }
+
+        async function sendRequest(endpoint, method, params) {
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: method,
+                        params: params,
+                        id: 1
+                    })
+                });
+
+                const data = await response.json();
+                const endTime = Date.now();
+
+                return {
+                    endpoint,
+                    success: !data.error,
+                    data,
+                    time: endTime - startTime
+                };
+            } catch (error) {
+                const endTime = Date.now();
+                return {
+                    endpoint,
+                    success: false,
+                    data: { error: { message: error.message } },
+                    time: endTime - startTime
+                };
+            }
+        }
+
+        function displayResults(results) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '<div class="section-title">📊 Results</div>';
+
+            results.forEach(result => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+
+                const header = document.createElement('div');
+                header.className = 'result-header';
+                
+                const endpointDiv = document.createElement('div');
+                endpointDiv.className = 'result-endpoint';
+                endpointDiv.textContent = result.endpoint;
+
+                const status = document.createElement('span');
+                status.className = `result-status ${result.success ? 'status-success' : 'status-error'}`;
+                status.textContent = result.success ? 'SUCCESS' : 'ERROR';
+
+                header.appendChild(endpointDiv);
+                header.appendChild(status);
+
+                const time = document.createElement('div');
+                time.className = 'result-time';
+                time.textContent = `Response time: ${result.time}ms`;
+
+                const dataDiv = document.createElement('div');
+                dataDiv.className = 'result-data';
+                const pre = document.createElement('pre');
+                pre.textContent = JSON.stringify(result.data, null, 2);
+                dataDiv.appendChild(pre);
+
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.textContent = 'Copy Response';
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(JSON.stringify(result.data, null, 2));
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(() => copyBtn.textContent = 'Copy Response', 2000);
+                };
+
+                card.appendChild(header);
+                card.appendChild(time);
+                card.appendChild(dataDiv);
+                card.appendChild(copyBtn);
+                container.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>

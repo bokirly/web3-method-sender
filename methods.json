@@ -1,0 +1,174 @@
+{
+  "methods": [
+    {
+      "name": "Get Block Number",
+      "method": "eth_blockNumber",
+      "params": [],
+      "description": "Returns the current block number"
+    },
+    {
+      "name": "Get Balance",
+      "method": "eth_getBalance",
+      "params": [
+        {
+          "name": "address",
+          "type": "string",
+          "placeholder": "0x...",
+          "required": true
+        },
+        {
+          "name": "block",
+          "type": "string",
+          "placeholder": "latest",
+          "required": false,
+          "default": "latest"
+        }
+      ],
+      "description": "Returns the balance of the account"
+    },
+    {
+      "name": "Get Transaction by Hash",
+      "method": "eth_getTransactionByHash",
+      "params": [
+        {
+          "name": "txHash",
+          "type": "string",
+          "placeholder": "0x...",
+          "required": true
+        }
+      ],
+      "description": "Returns transaction details for a given hash"
+    },
+    {
+      "name": "Get Transaction Receipt",
+      "method": "eth_getTransactionReceipt",
+      "params": [
+        {
+          "name": "txHash",
+          "type": "string",
+          "placeholder": "0x...",
+          "required": true
+        }
+      ],
+      "description": "Returns the receipt of a transaction"
+    },
+    {
+      "name": "Call Contract",
+      "method": "eth_call",
+      "params": [
+        {
+          "name": "transaction",
+          "type": "object",
+          "placeholder": "{\"to\": \"0x...\", \"data\": \"0x...\"}",
+          "required": true
+        },
+        {
+          "name": "block",
+          "type": "string",
+          "placeholder": "latest",
+          "required": false,
+          "default": "latest"
+        }
+      ],
+      "description": "Executes a call without creating a transaction"
+    },
+    {
+      "name": "Get Gas Price",
+      "method": "eth_gasPrice",
+      "params": [],
+      "description": "Returns the current gas price"
+    },
+    {
+      "name": "Estimate Gas",
+      "method": "eth_estimateGas",
+      "params": [
+        {
+          "name": "transaction",
+          "type": "object",
+          "placeholder": "{\"from\": \"0x...\", \"to\": \"0x...\", \"data\": \"0x...\"}",
+          "required": true
+        }
+      ],
+      "description": "Generates and returns an estimate of gas needed"
+    },
+    {
+      "name": "Get Block by Number",
+      "method": "eth_getBlockByNumber",
+      "params": [
+        {
+          "name": "blockNumber",
+          "type": "string",
+          "placeholder": "latest or 0x...",
+          "required": true
+        },
+        {
+          "name": "fullTransactions",
+          "type": "boolean",
+          "placeholder": "true/false",
+          "required": false,
+          "default": false
+        }
+      ],
+      "description": "Returns information about a block by number"
+    },
+    {
+      "name": "Get Logs",
+      "method": "eth_getLogs",
+      "params": [
+        {
+          "name": "filter",
+          "type": "object",
+          "placeholder": "{\"fromBlock\": \"0x0\", \"toBlock\": \"latest\", \"address\": \"0x...\"}",
+          "required": true
+        }
+      ],
+      "description": "Returns an array of logs matching the filter"
+    },
+    {
+      "name": "Get Chain ID",
+      "method": "eth_chainId",
+      "params": [],
+      "description": "Returns the chain ID"
+    },
+    {
+      "name": "Get Transaction Count",
+      "method": "eth_getTransactionCount",
+      "params": [
+        {
+          "name": "address",
+          "type": "string",
+          "placeholder": "0x...",
+          "required": true
+        },
+        {
+          "name": "block",
+          "type": "string",
+          "placeholder": "latest",
+          "required": false,
+          "default": "latest"
+        }
+      ],
+      "description": "Returns the number of transactions sent from an address"
+    },
+    {
+      "name": "Get Code",
+      "method": "eth_getCode",
+      "params": [
+        {
+          "name": "address",
+          "type": "string",
+          "placeholder": "0x...",
+          "required": true
+        },
+        {
+          "name": "block",
+          "type": "string",
+          "placeholder": "latest",
+          "required": false,
+          "default": "latest"
+        }
+      ],
+      "description": "Returns code at a given address"
+    }
+  ]
+}
