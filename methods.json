@@ -40,17 +40,41 @@
       "description": "Returns transaction details for a given hash"
     },
     {
-      "name": "Get Transaction by Hash",
-      "method": "eth_getTransactionByHash",
+      "name": "Simulate Transaction",
+      "method": "tenderly_simulateTransaction",
       "params": [
         {
-          "name": "txHash",
+          "name": "from",
           "type": "string",
           "placeholder": "0x...",
           "required": true
+        },
+        {
+          "name": "to",
+          "type": "string",
+          "placeholder": "0x...",
+          "required": true
+        },
+        {
+          "name": "input",
+          "type": "string",
+          "placeholder": "0x...",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "placeholder": "0x...",
+          "required": true
+        },
+        {
+          "name": "maxFeePerGas",
+          "type": "string",
+          "placeholder": "0x...",
+          "required": false
         }
       ],
-      "description": "Returns transaction details for a given hash"
+      "description": "Simulates a transaction using Tenderly's API"
     },
     {
       "name": "Get Transaction Receipt",

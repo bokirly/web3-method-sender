@@ -267,6 +267,123 @@
         .copy-btn:hover {
             background: #2980b9;
         }
+
+        /* Toggle Switch Styles */
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .toggle-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 30px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+
+        .mode-description {
+            font-size: 13px;
+            color: #666;
+            flex: 1;
+        }
+
+        /* Raw JSON Editor */
+        .raw-json-editor {
+            display: none;
+        }
+
+        .raw-json-editor.active {
+            display: block;
+        }
+
+        .json-textarea {
+            width: 100%;
+            min-height: 300px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            resize: vertical;
+        }
+
+        .json-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-params {
+            display: block;
+        }
+
+        .form-params.hidden {
+            display: none;
+        }
+
+        .json-validation {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .json-validation.valid {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .json-validation.invalid {
+            background: #f8d7da;
+            color: #721c24;
+        }
     </style>
 </head>
 <body>
@@ -291,8 +408,22 @@
                 <button class="btn btn-add" onclick="addEndpoint()">+ Add Endpoint</button>
             </div>
 
-            <!-- Method Selection Section -->
+            <!-- Input Mode Toggle -->
             <div class="section">
+                <div class="mode-toggle">
+                    <span class="toggle-label">Input Mode:</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="modeToggle" onchange="toggleInputMode()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="mode-description" id="modeDescription">
+                        <strong>Form Mode</strong> - Fill parameters one by one
+                    </span>
+                </div>
+            </div>
+
+            <!-- Method Selection Section (Form Mode) -->
+            <div class="section form-params" id="formMode">
                 <div class="section-title">
                     📋 Select Method
                 </div>
@@ -303,16 +434,34 @@
                     <button class="btn btn-primary" onclick="loadMethods()">Reload Methods</button>
                 </div>
                 <div id="methodDescription" class="method-description"></div>
-            </div>
 
-            <!-- Parameters Section -->
-            <div class="section">
+                <!-- Parameters Section -->
                 <div class="section-title">
                     ⚙️ Parameters
                 </div>
                 <div class="params-container" id="paramsContainer">
                     <p style="color: #999;">Select a method to configure parameters</p>
                 </div>
+            </div>
+
+            <!-- Raw JSON Mode -->
+            <div class="section raw-json-editor" id="rawMode">
+                <div class="section-title">
+                    📝 Raw JSON Request Body
+                </div>
+                <textarea 
+                    class="json-textarea" 
+                    id="rawJsonInput" 
+                    placeholder='Paste your complete JSON-RPC request body here:
+{
+  "jsonrpc": "2.0",
+  "id": 0,
+  "method": "eth_blockNumber",
+  "params": []
+}'
+                    oninput="validateJson()"
+                ></textarea>
+                <div id="jsonValidation" class="json-validation" style="display: none;"></div>
             </div>
 
             <!-- Send Button -->
@@ -328,11 +477,51 @@
     <script>
         let methods = [];
         let currentMethod = null;
+        let isRawMode = false;
 
         // Load methods on startup
         window.addEventListener('DOMContentLoaded', () => {
             loadMethods();
         });
+
+        function toggleInputMode() {
+            isRawMode = document.getElementById('modeToggle').checked;
+            const formMode = document.getElementById('formMode');
+            const rawMode = document.getElementById('rawMode');
+            const modeDescription = document.getElementById('modeDescription');
+
+            if (isRawMode) {
+                formMode.classList.add('hidden');
+                rawMode.classList.add('active');
+                modeDescription.innerHTML = '<strong>Raw JSON Mode</strong> - Paste complete request body';
+            } else {
+                formMode.classList.remove('hidden');
+                rawMode.classList.remove('active');
+                modeDescription.innerHTML = '<strong>Form Mode</strong> - Fill parameters one by one';
+            }
+        }
+
+        function validateJson() {
+            const textarea = document.getElementById('rawJsonInput');
+            const validation = document.getElementById('jsonValidation');
+            
+            try {
+                const json = JSON.parse(textarea.value);
+                validation.style.display = 'block';
+                validation.className = 'json-validation valid';
+                validation.textContent = '✓ Valid JSON';
+                return true;
+            } catch (e) {
+                if (textarea.value.trim()) {
+                    validation.style.display = 'block';
+                    validation.className = 'json-validation invalid';
+                    validation.textContent = '✗ Invalid JSON: ' + e.message;
+                } else {
+                    validation.style.display = 'none';
+                }
+                return false;
+            }
+        }
 
         async function loadMethods() {
             try {
@@ -482,21 +671,60 @@
             return params;
         }
 
-        async function sendRequests() {
-            if (!currentMethod) {
-                alert('Please select a method first!');
-                return;
+        function getRawJsonRequest() {
+            const textarea = document.getElementById('rawJsonInput');
+            try {
+                const json = JSON.parse(textarea.value);
+                
+                // Validate basic JSON-RPC structure
+                if (!json.method) {
+                    throw new Error('Missing "method" field in JSON-RPC request');
+                }
+                if (!json.params) {
+                    json.params = [];
+                }
+                if (!json.jsonrpc) {
+                    json.jsonrpc = '2.0';
+                }
+                if (json.id === undefined) {
+                    json.id = 1;
+                }
+                
+                return {
+                    method: json.method,
+                    params: json.params,
+                    jsonrpc: json.jsonrpc,
+                    id: json.id
+                };
+            } catch (e) {
+                throw new Error('Invalid JSON: ' + e.message);
             }
+        }
 
+        async function sendRequests() {
             const endpoints = getEndpoints();
             if (endpoints.length === 0) {
                 alert('Please add at least one RPC endpoint!');
                 return;
             }
 
-            let params;
+            let method, params, jsonrpc = '2.0', id = 1;
+
             try {
-                params = getParams();
+                if (isRawMode) {
+                    const rawRequest = getRawJsonRequest();
+                    method = rawRequest.method;
+                    params = rawRequest.params;
+                    jsonrpc = rawRequest.jsonrpc;
+                    id = rawRequest.id;
+                } else {
+                    if (!currentMethod) {
+                        alert('Please select a method first!');
+                        return;
+                    }
+                    method = currentMethod.method;
+                    params = getParams();
+                }
             } catch (error) {
                 alert(error.message);
                 return;
@@ -506,13 +734,13 @@
             resultsContainer.innerHTML = '<div class="loading"><div class="spinner"></div><p>Sending requests...</p></div>';
 
             const results = await Promise.all(
-                endpoints.map(endpoint => sendRequest(endpoint, currentMethod.method, params))
+                endpoints.map(endpoint => sendRequest(endpoint, method, params, jsonrpc, id))
             );
 
             displayResults(results);
         }
 
-        async function sendRequest(endpoint, method, params) {
+        async function sendRequest(endpoint, method, params, jsonrpc = '2.0', id = 1) {
             const startTime = Date.now();
             
             try {
@@ -522,10 +750,10 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        jsonrpc: '2.0',
+                        jsonrpc: jsonrpc,
                         method: method,
                         params: params,
-                        id: 1
+                        id: id
                     })
                 });
 
