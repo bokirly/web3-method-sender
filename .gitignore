@@ -5,4 +5,5 @@ build/
 .DS_Store
 .env
 DEPLOYMENT.md
+LEARNING_ROADMAP.md
 .vercel

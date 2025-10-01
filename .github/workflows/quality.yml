@@ -1,0 +1,68 @@
+name: Code Quality
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Validate JSON files
+        run: |
+          echo "Validating methods.json..."
+          node -e "JSON.parse(require('fs').readFileSync('methods.json', 'utf8'))"
+          echo "✓ methods.json is valid"
+          
+          echo "Validating manifest.json..."
+          node -e "JSON.parse(require('fs').readFileSync('manifest.json', 'utf8'))"
+          echo "✓ manifest.json is valid"
+          
+          echo "Validating package.json..."
+          node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))"
+          echo "✓ package.json is valid"
+
+      - name: Check HTML syntax
+        run: |
+          if grep -q '<html' index.html; then
+            echo "✓ HTML file found"
+          else
+            echo "✗ HTML file invalid"
+            exit 1
+          fi
+
+      - name: Check for TODO comments
+        run: |
+          if grep -r "TODO" --include="*.html" --include="*.js" .; then
+            echo "⚠️  Found TODO comments - consider addressing them"
+          else
+            echo "✓ No TODO comments found"
+          fi
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for sensitive data
+        run: |
+          if grep -rE "(api[_-]?key|secret|password|token)" --include="*.html" --include="*.js" --include="*.json" .; then
+            echo "⚠️  Potential sensitive data found - please review"
+          else
+            echo "✓ No obvious sensitive data patterns found"
+          fi

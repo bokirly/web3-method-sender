@@ -1,5 +1,10 @@
 # Web3 RPC Sender App
 
+[![Deploy to GitHub Pages](https://github.com/YOUR_USERNAME/web3-rpc-sender/workflows/Deploy%20to%20GitHub%20Pages/badge.svg)](https://github.com/YOUR_USERNAME/web3-rpc-sender/actions)
+[![Version](https://img.shields.io/github/package-json/v/YOUR_USERNAME/web3-rpc-sender)](https://github.com/YOUR_USERNAME/web3-rpc-sender)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
 A desktop and web application for sending Web3 RPC requests to multiple endpoints simultaneously.
 
 ## Features
