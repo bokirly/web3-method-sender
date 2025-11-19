@@ -1,6 +1,6 @@
 {
   "name": "curl-sender-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Multi-endpoint Web3 RPC request sender",
   "main": "electron.js",
   "scripts": {
