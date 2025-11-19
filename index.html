@@ -404,29 +404,136 @@
             font-size: 13px;
             color: #1976d2;
         }
+
+        /* Tab Styles */
+        .tab-container {
+            background: white;
+            border-bottom: 1px solid #e1e8ed;
+            margin-bottom: 30px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 0;
+        }
+
+        .tab-button {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab-button:hover {
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .network-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .network-selector label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .network-selector select {
+            flex: 0 0 200px;
+        }
+
+        .token-input-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .token-results {
+            background: white;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .storage-slot-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .storage-slot-info h4 {
+            margin: 0 0 10px 0;
+            color: #856404;
+        }
+
+        .storage-slot-value {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Web3 RPC Sender</h1>
-            <p>Send requests to multiple RPC endpoints simultaneously</p>
+            <h1>🚀 Web3 RPC Sender & Token Tools</h1>
+            <p>Send RPC requests to multiple endpoints & lookup token storage slots</p>
         </div>
 
         <div class="content">
-            <!-- RPC Endpoints Section -->
-            <div class="section">
-                <div class="section-title">
-                    🌐 RPC Endpoints
+            <!-- Tab Navigation -->
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="switchTab('curl-sender')">🚀 cURL Sender</button>
+                    <button class="tab-button" onclick="switchTab('token-storage')">🪙 Token Storage Slots</button>
                 </div>
-                <div class="rpc-endpoints" id="rpcEndpoints">
-                    <div class="endpoint-row">
-                        <input type="text" placeholder="https://eth-mainnet.g.alchemy.com/v2/YOUR-API-KEY" class="rpc-input">
-                        <button class="btn btn-danger btn-small" onclick="removeEndpoint(this)">Remove</button>
-                    </div>
-                </div>
-                <button class="btn btn-add" onclick="addEndpoint()">+ Add Endpoint</button>
             </div>
+
+            <!-- cURL Sender Tab -->
+            <div id="curl-sender" class="tab-content active">
+                <!-- RPC Endpoints Section -->
+                <div class="section">
+                    <div class="section-title">
+                        🌐 RPC Endpoints
+                    </div>
+                    <div class="rpc-endpoints" id="rpcEndpoints">
+                        <div class="endpoint-row">
+                            <input type="text" placeholder="https://eth-mainnet.g.alchemy.com/v2/YOUR-API-KEY" class="rpc-input">
+                            <button class="btn btn-danger btn-small" onclick="removeEndpoint(this)">Remove</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-add" onclick="addEndpoint()">+ Add Endpoint</button>
+                </div>
 
             <!-- Input Mode Toggle -->
             <div class="section">
@@ -507,13 +614,61 @@
                 <div id="paramsValidation" class="json-validation" style="display: none;"></div>
             </div>
 
-            <!-- Send Button -->
-            <button class="btn btn-primary send-btn" onclick="sendRequests()">
-                Send Requests to All Endpoints
-            </button>
+                <!-- Send Button -->
+                <button class="btn btn-primary send-btn" onclick="sendRequests()">
+                    Send Requests to All Endpoints
+                </button>
 
-            <!-- Results Section -->
-            <div class="results-container" id="resultsContainer"></div>
+                <!-- Results Section -->
+                <div class="results-container" id="resultsContainer"></div>
+            </div>
+
+            <!-- Token Storage Slots Tab -->
+            <div id="token-storage" class="tab-content">
+                <div class="section">
+                    <div class="section-title">
+                        🪙 Token Balance Storage Slot Lookup
+                    </div>
+                    <p style="color: #666; margin-bottom: 20px;">
+                        Find the storage slot used to store token balances for any ERC-20 token contract.
+                    </p>
+
+                    <!-- Network Selection -->
+                    <div class="network-selector">
+                        <label for="networkSelect">Network:</label>
+                        <select id="networkSelect">
+                            <option value="eth">Ethereum</option>
+                            <option value="opt" selected>Optimism</option>
+                            <option value="arb">Arbitrum</option>
+                            <option value="avax">Avalanche</option>
+                        </select>
+                    </div>
+
+                    <!-- Token Contract Input -->
+                    <div class="token-input-section">
+                        <div class="section-title" style="margin-bottom: 15px;">
+                            📝 Token Contract Address
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <input
+                                type="text"
+                                id="tokenAddress"
+                                placeholder="0x8700daec35af8ff88c16bdf0418774cb3d7599b4"
+                                style="width: 100%;"
+                            >
+                        </div>
+                        <div class="info-box">
+                            💡 <strong>Example:</strong> SNX on Optimism: <code>0x8700daec35af8ff88c16bdf0418774cb3d7599b4</code>
+                        </div>
+                        <button class="btn btn-primary" onclick="lookupStorageSlot()" style="width: 100%;">
+                            🔍 Get Storage Slot
+                        </button>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="tokenStorageResults"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -526,6 +681,148 @@
         window.addEventListener('DOMContentLoaded', () => {
             loadMethods();
         });
+
+        // Tab Management
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab and activate button
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Token Storage Slot Functions
+        async function lookupStorageSlot() {
+            const networkSelect = document.getElementById('networkSelect');
+            const tokenAddressInput = document.getElementById('tokenAddress');
+            const resultsContainer = document.getElementById('tokenStorageResults');
+
+            const network = networkSelect.value;
+            const tokenAddress = tokenAddressInput.value.trim();
+
+            // Validation
+            if (!tokenAddress) {
+                alert('Please enter a token contract address');
+                return;
+            }
+
+            if (!tokenAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
+                alert('Please enter a valid Ethereum address (0x followed by 40 hex characters)');
+                return;
+            }
+
+            // Show loading
+            resultsContainer.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Looking up storage slot for ${tokenAddress} on ${getNetworkName(network)}...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`http://token-bss.xyz/${network}/${tokenAddress}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                displayTokenStorageResults(data, network, tokenAddress);
+
+            } catch (error) {
+                console.error('Error fetching storage slot:', error);
+                resultsContainer.innerHTML = `
+                    <div class="result-card">
+                        <div class="result-header">
+                            <div class="result-endpoint">❌ Error</div>
+                            <span class="result-status status-error">FAILED</span>
+                        </div>
+                        <div class="result-data">
+                            <pre>Error: ${error.message}</pre>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function getNetworkName(networkKey) {
+            const networks = {
+                'eth': 'Ethereum',
+                'opt': 'Optimism',
+                'arb': 'Arbitrum',
+                'avax': 'Avalanche'
+            };
+            return networks[networkKey] || networkKey;
+        }
+
+        function displayTokenStorageResults(data, network, tokenAddress) {
+            const resultsContainer = document.getElementById('tokenStorageResults');
+            const networkName = getNetworkName(network);
+
+            resultsContainer.innerHTML = `
+                <div class="token-results">
+                    <div class="section-title">
+                        📊 Storage Slot Results
+                    </div>
+
+                    <div class="result-header" style="margin-bottom: 20px;">
+                        <div class="result-endpoint">
+                            <strong>Token:</strong> ${tokenAddress}
+                            <br><strong>Network:</strong> ${networkName}
+                        </div>
+                        <span class="result-status status-success">SUCCESS</span>
+                    </div>
+
+                    ${data.balancesSlot !== undefined ? `
+                        <div class="storage-slot-info">
+                            <h4>💰 Balance Storage Slot</h4>
+                            <div class="storage-slot-value">${data.balancesSlot}</div>
+                        </div>
+                    ` : ''}
+
+                    ${data.allowancesSlot !== undefined ? `
+                        <div class="storage-slot-info">
+                            <h4>✅ Allowances Storage Slot</h4>
+                            <div class="storage-slot-value">${data.allowancesSlot}</div>
+                        </div>
+                    ` : ''}
+
+                    ${data.totalSupplySlot !== undefined ? `
+                        <div class="storage-slot-info">
+                            <h4>📈 Total Supply Storage Slot</h4>
+                            <div class="storage-slot-value">${data.totalSupplySlot}</div>
+                        </div>
+                    ` : ''}
+
+                    <div class="result-data">
+                        <h4 style="margin-bottom: 10px;">Raw API Response:</h4>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+
+                    <button class="copy-btn" onclick="copyTokenResults('${JSON.stringify(data).replace(/'/g, "\\'")}')">
+                        Copy Results
+                    </button>
+                </div>
+            `;
+        }
+
+        function copyTokenResults(dataString) {
+            const data = JSON.parse(dataString);
+            navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = originalText, 2000);
+        }
 
         function toggleInputMode() {
             isRawMode = document.getElementById('modeToggle').checked;
